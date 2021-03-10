@@ -1,0 +1,62 @@
+---
+title: "IS4300 Demonstration"
+author: "Jason Holland"
+date: "1/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+# Required Packages:
+
+if(!require(readr)) install.packages("readr", repos = "http://cran.us.r-project.org") # Need this for the read_csv command
+
+# Get the Crickter Data from GitHub
+
+# This is the URL for the data that will be analyzed.
+urlfile <- "https://github.com/jholland5/IS4300Project/raw/main/cricket.csv"
+
+# Read the data into R and name it cricketers.
+cricketers <- read_csv(url(urlfile))
+```
+
+```{r echo=TRUE}
+# We check to see that we got the data by doing the following.
+head(cricketers)
+# We can take this code out once we see the path works.
+```
+
+
+### Introduction
+This demonstration involves a two-sample t-test and visualization of British Cricketers.  We wish to analyze the life expectency across the factor **hand preference** to see if there is a significant difference between left and right handed cricketers.  The full data set can be found at 
+<https://vincentarelbundock.github.io/Rdatasets/datasets.html>
+
+Before running the t-test, we visualize the distributions of life expectency for the two groups we are interested in.
+
+```{r echo=FALSE}
+cricketers <- as.data.frame(cricketers)
+left <- cricketers[1:632,1]
+right <- cricketers[1:2755,2]
+plot(1,-1,ylim=c(0,.04),xlim=c(0,110),main="Life Expectancy of Cricketers",
+xlab="Life Expectancy",ylab="density")
+lines(density(left),col="red",lwd=3)
+lines(density(right),col="blue",lwd=3)
+legend(5, 0.035, legend=c("Left-handed", "Right-handed"),
+col=c("red", "blue"), text.font=4, bg='gray90',lty=c(1,1,1))
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+The plots are similar but there are some obvious deviations in life-expectency, especially around the ages 20 - 40.  
+
+### Two-Sample T-Test
+
+It is easy to run a t-test in R.  We use the following code.
+
+```{r echo=TRUE}
+t.test(left,right)
+```
+We can conclude that at the .05 level of significance, there is a difference between the left and right handers.  We see that right handers are living longer by nearly two years.  
