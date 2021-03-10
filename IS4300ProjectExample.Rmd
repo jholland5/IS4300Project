@@ -1,0 +1,89 @@
+---
+title: "IS4300 Demonstration"
+author: "Jason Holland"
+date: "1/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+# Required Packages:
+
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org") # We need this for read_csv as well
+# as ggplot2 functions.
+
+# Get the Crickter Data from GitHub
+
+# This is the URL for the data that will be analyzed.
+urlfile <- "https://github.com/jholland5/IS4300Project/raw/main/cricket.csv"
+
+# Read the data into R and name it cricketers.
+cricketers <- read_csv(url(urlfile))
+```
+
+```{r echo=TRUE}
+# We check to see that we got the data by doing the following.
+head(cricketers)
+# We can take this code out once we see the path works.
+```
+
+
+### Introduction
+This demonstration involves a two-sample t-test and visualization of British Cricketers.  We wish to analyze the life expectency across the factor **hand preference** to see if there is a significant difference between left and right handed cricketers.  An abbreviated data set was created by the author and can be found at 
+<https://github.com/jholland5/IS4300Project>.  The full data set can be found at 
+<https://vincentarelbundock.github.io/Rdatasets/datasets.html>
+
+Before running the t-test, we visualize the distributions of life expectency for the two groups we are interested in.  The following graph uses basic R graphing functions.
+
+```{r echo=FALSE}
+cricketers <- as.data.frame(cricketers)
+left <- cricketers[1:632,1]
+right <- cricketers[1:2755,2]
+plot(1,-1,ylim=c(0,.04),xlim=c(0,110),main="Life Expectancy of Cricketers",
+xlab="Life Expectancy",ylab="density")
+lines(density(left),col="red",lwd=3)
+lines(density(right),col="blue",lwd=3)
+legend(5, 0.035, legend=c("Left-handed", "Right-handed"),
+col=c("red", "blue"), text.font=4, bg='gray90',lty=c(1,1,1))
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+The plots are similar but there are some obvious deviations in life-expectency, especially around the ages 20 - 40. 
+
+We see if we can make a better graph using ggplot2.  First we create a "tidy" data set for using ggplot2.
+
+```{r echo = FALSE}
+LifeExpect <- c(left,right)
+Handedness <- c(rep("Left",length(left)),rep("Right",length(right)))
+cricketdata <- data.frame(LifeExpect,Handedness)
+```
+
+```{r echo=FALSE}
+plot <- cricketdata %>% ggplot()
+plot + geom_density(aes(LifeExpect,color = Handedness),size = 1.5) + labs(title="Life Expectancy of British Cricketers",x="")
+```
+
+It is important to point out that there are a lot more right handers in the data set than left handers.  Note that since the data is in tidy format now, we can use tidyverse functions to summarize the important variables.  We demonstrate that next.
+
+```{r echo=TRUE}
+cricketdata %>% group_by(Handedness) %>% summarize(number = n())
+```
+
+We also summarize the life expectancy and we see that there is a fairly significant gap between the two averages.
+
+```{r echo=TRUE}
+cricketdata %>% group_by(Handedness) %>% summarize(Mean = mean(LifeExpect))
+```
+
+### Two-Sample T-Test
+
+It is easy to run a t-test in R.  We use the following code.
+
+```{r echo=TRUE}
+t.test(left,right)
+```
+We can conclude that at the .05 level of significance, there is a statistically significant difference between the left and right handers life expectancy.  We see that right handers are living longer by about 1.7 years.  
